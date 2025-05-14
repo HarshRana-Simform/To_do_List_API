@@ -49,4 +49,4 @@ class TodoViewSchema(BaseModel):
     task_priority: TaskPriority
 
     class Config:
-        orm_mode = False
+        from_attributes = True

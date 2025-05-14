@@ -4,7 +4,7 @@ from .connection import engine, Base
 
 
 def create_db_tables():
-    from To_do_app.models.todo_models import Todos, test_table
+    from To_do_app.models import todo_models, user_models
 
     Base.metadata.create_all(bind=engine)
 

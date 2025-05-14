@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from To_do_app.router.todo_routes import router
+from To_do_app.router import todo_routes, user_routes, authentication_routes
 
 # Endpoint	        Method	Description
 # /todos	        Get	    Read all todo
@@ -14,5 +14,9 @@ app = FastAPI(
     description='A set of RESTful APIs for a To-Do list web service',
 )
 
+app.include_router(authentication_routes.router,
+                   prefix="/auth", tags=["Authentication"])
 
-app.include_router(router, prefix="/api", tags=["To-Do Endpoints"])
+app.include_router(user_routes.router, prefix="/api", tags=["User Endpoints"])
+
+app.include_router(todo_routes.router, prefix="/api", tags=["To-Do Endpoints"])

@@ -1,17 +1,9 @@
 from ..database.connection import Base
-from sqlalchemy import Column, Integer, String, Text, Boolean
+from sqlalchemy import Text, Boolean, ForeignKey
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date, datetime, timezone
 from enum import Enum
-
-
-class test_table(Base):
-    __tablename__ = "testing"
-
-    id = Column(Integer, primary_key=True, nullable=False)
-    title = Column(String, nullable=False)
-    content = Column(String, nullable=False)
 
 
 class TaskPriority(str, Enum):
@@ -39,6 +31,10 @@ class Todos(Base):
     due_date: Mapped[date] = mapped_column(nullable=True)
     task_priority: Mapped[TaskPriority] = mapped_column(
         SQLEnum(TaskPriority), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="todos")
+
     created_at: Mapped[datetime] = mapped_column(
         default=datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(default=datetime.now(
