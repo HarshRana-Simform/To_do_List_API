@@ -3,7 +3,9 @@ from ..models.user_models import User
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from ..core import authentication
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, BackgroundTasks
+from fastapi_mail import FastMail, MessageSchema, MessageType
+from ..core.mail_config import conf
 
 
 def create_user(request: UserSchema, db: Session):
@@ -68,14 +70,33 @@ def update_user(user_id: int, updated_user: UserUpdateSchema, db: Session):
                         detail="User not found.")
 
 
-def delete_user(user_id: int, db: Session):
+async def send_email_task(email_recipient: str):
+
+    message = MessageSchema(
+        subject="Account deleted!",
+        recipients=[email_recipient],
+        body="Your account has been deleted by the admin. If you wish to restore it please contact the admin.",
+        subtype=MessageType.plain
+    )
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+
+def delete_user(user_id: int, db: Session, background_task: BackgroundTasks):
     stmt = select(User).where(User.id == user_id, User.deleted == False)
 
     user = db.execute(stmt).scalars().first()
+
     if user:
-        user.deleted = True
-        db.commit()
-        db.refresh(user)
-        return {}
+        try:
+            user.deleted = True
+            db.commit()
+            db.refresh(user)
+            background_task.add_task(send_email_task, user.email)
+            return {}
+        except Exception as e:
+            db.rollback()
+            print(f"Some error occured: {e}")
+
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                         detail="User not found.")

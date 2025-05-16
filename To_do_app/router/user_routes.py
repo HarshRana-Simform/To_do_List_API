@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, Path
+from fastapi import APIRouter, status, Depends, Path, BackgroundTasks
 from typing import Annotated
 from ..schemas.user_schemas import UserSchema, ShowUserSchema, UserUpdateSchema
 from ..schemas.relationship_schemas import ShowUserRelSchema
@@ -31,5 +31,5 @@ def get_all_user_data(db: Annotated[Session, Depends(get_db)]):
 
 
 @router.delete("/admin/{user_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(is_Admin)])
-def delete_todo(user_id: Annotated[int, Path()], db: Annotated[Session, Depends(get_db)]):
-    return user_handler.delete_user(user_id, db)
+def delete_user(user_id: Annotated[int, Path()], db: Annotated[Session, Depends(get_db)], background_task: BackgroundTasks):
+    return user_handler.delete_user(user_id, db, background_task)
